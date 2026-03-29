@@ -1,11 +1,27 @@
 const express = require('express');
 const Groq = require('groq-sdk');
 const axios = require('axios');
+const fs = require('fs');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+function getCount() {
+  try {
+    return JSON.parse(fs.readFileSync('counter.json')).count;
+  } catch(e) { return 0; }
+}
+
+function incrementCount() {
+  try {
+    const count = getCount() + 1;
+    fs.writeFileSync('counter.json', JSON.stringify({count}));
+    return count;
+  } catch(e) { return 0; }
+}
+
 app.get('/', (req, res) => {
+  const count = getCount();
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -21,8 +37,9 @@ app.get('/', (req, res) => {
         button { width: 100%; padding: 13px; background: #111; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
         button:hover { background: #333; }
         .badge { display: inline-block; background: #f0f0f0; color: #666; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; }
+        .counter { display: inline-block; background: #fff8e7; color: #b45309; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; margin-left: 8px; }
         .how { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; }
-        .how p { font-size: 13px; color: #999; margin-bottom: 4px; }
+        .how p { font-size: 13px; color: #999; margin-bottom: 8px; }
         .step { font-size: 13px; color: #555; margin-bottom: 4px; }
       </style>
     </head>
@@ -31,6 +48,7 @@ app.get('/', (req, res) => {
         <h1>🗂️ AI SOP Generator</h1>
         <p>Paste a Loom URL and get a clean, structured SOP in 60 seconds. Free.</p>
         <span class="badge">✨ No signup required</span>
+        <span class="counter">🔥 ${count} SOPs generated</span>
         <form action="/generate" method="POST">
           <input type="text" name="url" placeholder="Paste your Loom URL here..." required />
           <button type="submit">Generate SOP →</button>
@@ -53,7 +71,6 @@ app.post('/generate', async (req, res) => {
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
     let context = '';
     try {
       const loomId = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/)?.[1];
@@ -105,6 +122,7 @@ DEFINITION OF DONE
     });
 
     const sop = completion.choices[0].message.content;
+    incrementCount();
 
     res.send(`
       <!DOCTYPE html>
