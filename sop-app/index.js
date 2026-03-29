@@ -15,24 +15,32 @@ app.get('/', (req, res) => {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.1); width: 100%; max-width: 560px; }
-        h1 { font-size: 22px; margin-bottom: 8px; color: #111; }
-        p { color: #666; font-size: 14px; margin-bottom: 24px; }
+        h1 { font-size: 24px; margin-bottom: 8px; color: #111; }
+        p { color: #666; font-size: 15px; margin-bottom: 24px; line-height: 1.5; }
         input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
         button { width: 100%; padding: 13px; background: #111; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
         button:hover { background: #333; }
         .badge { display: inline-block; background: #f0f0f0; color: #666; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; }
+        .how { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; }
+        .how p { font-size: 13px; color: #999; margin-bottom: 4px; }
+        .step { font-size: 13px; color: #555; margin-bottom: 4px; }
       </style>
     </head>
     <body>
       <div class="card">
-        <h1>SOP Generator</h1>
-        <p>Paste a Loom URL and your Groq API key to generate a clean SOP.</p>
-        <span class="badge">Free for 3 SOPs</span>
+        <h1>🗂️ AI SOP Generator</h1>
+        <p>Paste a Loom URL and get a clean, structured SOP in 60 seconds. Free.</p>
+        <span class="badge">✨ No signup required</span>
         <form action="/generate" method="POST">
           <input type="text" name="url" placeholder="Paste your Loom URL here..." required />
-          <input type="text" name="apikey" placeholder="Paste your Groq API key (gsk_...)" required />
-          <button type="submit">Generate SOP</button>
+          <button type="submit">Generate SOP →</button>
         </form>
+        <div class="how">
+          <p>How it works:</p>
+          <div class="step">1. Paste any Loom video URL</div>
+          <div class="step">2. AI reads the video and extracts the process</div>
+          <div class="step">3. Get a clean SOP with steps, roles, and tools</div>
+        </div>
       </div>
     </body>
     </html>
@@ -40,11 +48,11 @@ app.get('/', (req, res) => {
 });
 
 app.post('/generate', async (req, res) => {
-  const { url, apikey } = req.body;
-  if (!url || !apikey) return res.send('<p>Missing fields. <a href="/">Go back</a></p>');
+  const { url } = req.body;
+  if (!url) return res.send('<p>Missing URL. <a href="/">Go back</a></p>');
 
   try {
-    const client = new Groq({ apiKey: apikey });
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     let context = '';
     try {
@@ -114,16 +122,20 @@ DEFINITION OF DONE
           .copy-btn { background: #111; color: white; border: none; }
           .print-btn { background: #f0f0f0; color: #333; border: none; }
           .back-btn { background: #f0f0f0; color: #333; }
+          .feedback { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; font-size: 13px; color: #999; }
         </style>
       </head>
       <body>
         <div class="card">
-          <h2>Your SOP</h2>
+          <h2>🗂️ Your SOP</h2>
           <pre id="sop">${sop.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
           <div class="actions">
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('sop').innerText).then(()=>this.innerText='Copied!')">Copy SOP</button>
-            <button class="print-btn" onclick="window.print()">Download PDF</button>
-            <a href="/" class="back-btn">Generate Another</a>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('sop').innerText).then(()=>this.innerText='✅ Copied!')">Copy SOP</button>
+            <button class="print-btn" onclick="window.print()">Download PDF 🖨️</button>
+            <a href="/" class="back-btn">Generate Another →</a>
+          </div>
+          <div class="feedback">
+            Was this useful? Reply to let us know what you'd improve.
           </div>
         </div>
       </body>
